@@ -24,6 +24,17 @@
 
 package me.dmdev.epicpredictor
 
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import me.dmdev.epicpredictor.presentation.MainPm
 import me.dmdev.premo.PmFactory
 import me.dmdev.premo.PmParams
@@ -37,6 +48,35 @@ class MainContainer : PmFactory {
             else -> throw IllegalArgumentException(
                 "Not handled instance creation for pm description: $description"
             )
+        }
+    }
+
+    val httpClient: HttpClient by lazy {
+        HttpClient {
+            install(UserAgent) {
+                agent = "Epic Predictor Desktop Client"
+            }
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = 3)
+                exponentialDelay()
+            }
+            install(ContentNegotiation) {
+                json(
+                    json = Json {
+                        ignoreUnknownKeys = true
+                    }
+                )
+            }
+            install(HttpCache)
+            install(HttpTimeout)
+            install(Logging) {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        println(message)
+                    }
+                }
+                level = LogLevel.ALL
+            }
         }
     }
 }

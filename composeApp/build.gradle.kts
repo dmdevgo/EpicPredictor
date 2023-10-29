@@ -48,6 +48,15 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.contentNegotiation)
+                implementation(libs.ktor.client.serialization)
+                implementation(libs.ktor.client.logging)
+
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.datetime)
+
                 implementation(libs.premo.core)
                 implementation(libs.premo.navigation)
                 implementation(libs.premo.saver.json)
@@ -57,9 +66,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlinx.datetime)
+
             }
         }
 
@@ -71,6 +78,7 @@ kotlin {
 
         val desktopMain by getting {
             dependencies {
+                implementation(libs.ktor.client.okhttp)
                 implementation(compose.desktop.common)
                 implementation(compose.desktop.currentOs)
             }
@@ -78,6 +86,7 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
+                implementation(libs.ktor.client.js)
                 implementation(compose.html.core)
             }
         }
