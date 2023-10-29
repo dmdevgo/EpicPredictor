@@ -22,26 +22,12 @@
  * SOFTWARE.
  */
 
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.window.CanvasBasedWindow
-import me.dmdev.epicpredictor.MainContainer
-import me.dmdev.epicpredictor.presentation.MainPm
-import me.dmdev.epicpredictor.Serializers
-import me.dmdev.epicpredictor.ui.App
-import me.dmdev.premo.JsPmDelegate
-import me.dmdev.premo.saver.JsonStateSaver
-import org.jetbrains.skiko.wasm.onWasmReady
+package me.dmdev.epicpredictor.ui
 
-@OptIn(ExperimentalComposeUiApi::class)
-fun main() {
-    val pmDelegate = JsPmDelegate<MainPm>(
-        pmDescription = MainPm.Description,
-        pmFactory = MainContainer(),
-        pmStateSaver = JsonStateSaver(Serializers.json)
-    )
-    onWasmReady {
-        CanvasBasedWindow("Epic Predictor") {
-            App(pmDelegate.presentationModel)
-        }
-    }
+import androidx.compose.runtime.Composable
+import me.dmdev.epicpredictor.presentation.MainPm
+
+@Composable
+internal fun App(pm: MainPm) {
+
 }

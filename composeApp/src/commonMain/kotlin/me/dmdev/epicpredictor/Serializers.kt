@@ -22,26 +22,27 @@
  * SOFTWARE.
  */
 
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.window.CanvasBasedWindow
-import me.dmdev.epicpredictor.MainContainer
-import me.dmdev.epicpredictor.presentation.MainPm
-import me.dmdev.epicpredictor.Serializers
-import me.dmdev.epicpredictor.ui.App
-import me.dmdev.premo.JsPmDelegate
-import me.dmdev.premo.saver.JsonStateSaver
-import org.jetbrains.skiko.wasm.onWasmReady
+package me.dmdev.epicpredictor
 
-@OptIn(ExperimentalComposeUiApi::class)
-fun main() {
-    val pmDelegate = JsPmDelegate<MainPm>(
-        pmDescription = MainPm.Description,
-        pmFactory = MainContainer(),
-        pmStateSaver = JsonStateSaver(Serializers.json)
-    )
-    onWasmReady {
-        CanvasBasedWindow("Epic Predictor") {
-            App(pmDelegate.presentationModel)
-        }
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+import me.dmdev.epicpredictor.presentation.MainPm
+import me.dmdev.premo.PmDescription
+
+object Serializers {
+
+    private val module = SerializersModule {
+        polymorphic(PmDescription::class) { registerSubclasses() }
+    }
+
+    val json = Json {
+        serializersModule = module
+    }
+
+    private fun PolymorphicModuleBuilder<PmDescription>.registerSubclasses() {
+        subclass(MainPm.Description::class)
     }
 }

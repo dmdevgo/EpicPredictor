@@ -22,11 +22,15 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor
+package me.dmdev.epicpredictor.presentation
 
-import androidx.compose.runtime.Composable
+import kotlinx.serialization.Serializable
+import me.dmdev.premo.PmDescription
+import me.dmdev.premo.PmParams
+import me.dmdev.premo.PresentationModel
 
-@Composable
-internal fun App() {
+class MainPm(params: PmParams) : PresentationModel(params) {
 
+    @Serializable
+    object Description : PmDescription
 }

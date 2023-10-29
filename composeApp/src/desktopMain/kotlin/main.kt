@@ -22,20 +22,60 @@
  * SOFTWARE.
  */
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import me.dmdev.epicpredictor.MainContainer
+import me.dmdev.epicpredictor.presentation.MainPm
+import me.dmdev.epicpredictor.Serializers
+import me.dmdev.epicpredictor.ui.App
+import me.dmdev.premo.JvmPmDelegate
+import me.dmdev.premo.saver.JsonFileStateSaver
 import java.awt.Dimension
-import me.dmdev.epicpredictor.App
 
-fun main() = application {
-    Window(
-        title = "Epic Predictor",
-        state = rememberWindowState(width = 800.dp, height = 600.dp),
-        onCloseRequest = ::exitApplication,
-    ) {
-        window.minimumSize = Dimension(350, 600)
-        App()
+fun main() {
+    val pmDelegate = JvmPmDelegate<MainPm>(
+        pmDescription = MainPm.Description,
+        pmFactory = MainContainer(),
+        pmStateSaver = JsonFileStateSaver(Serializers.json)
+    )
+
+    application {
+
+        val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
+        pmDelegate.attachWindowLifecycle(windowState)
+
+        Window(
+            title = "Epic Predictor",
+            state = windowState,
+            onCloseRequest = ::exitApplication,
+        ) {
+            window.minimumSize = Dimension(800, 600)
+            App(pmDelegate.presentationModel)
+        }
+    }
+}
+
+@Composable
+fun JvmPmDelegate<*>.attachWindowLifecycle(windowState: WindowState) {
+    LaunchedEffect(this, windowState) {
+        snapshotFlow(windowState::isMinimized).collect { isMinimized ->
+            if (isMinimized) {
+                onBackground()
+            } else {
+                onForeground()
+            }
+        }
+    }
+
+    DisposableEffect(this) {
+        onCreate()
+        onDispose(::onDestroy)
     }
 }

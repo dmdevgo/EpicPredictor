@@ -48,6 +48,10 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
+                implementation(libs.premo.core)
+                implementation(libs.premo.navigation)
+                implementation(libs.premo.saver.json)
+
                 implementation(compose.runtime)
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
