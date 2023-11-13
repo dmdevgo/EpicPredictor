@@ -24,13 +24,55 @@
 
 package me.dmdev.epicpredictor.presentation
 
+import Epic_Predictor.composeApp.BuildConfig
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import me.dmdev.epicpredictor.domain.AgileRepository
+import me.dmdev.epicpredictor.domain.Issue
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
 
-class MainPm(params: PmParams) : PresentationModel(params) {
+class MainPm(
+    val agileRepository: AgileRepository,
+    params: PmParams
+) : SingleStatePm<MainPm.State>(
+    initialState = State(),
+    pmParams = params
+) {
 
     @Serializable
     object Description : PmDescription
+
+    data class State(
+        val epicReport: EpicReport? = null,
+        val error: String? = null
+    )
+
+    data class EpicReport(
+        val totalIssuesCount: Int,
+        val closedIssuesCount: Int,
+        val openIssuesCount: Int,
+    )
+
+    init {
+        scope.launch {
+            val result = agileRepository.getEpicIssues(BuildConfig.JIRA_EPIC_ID)
+            if (result.isSuccess) {
+                val issues = result.getOrNull() ?: listOf()
+                changeState { copy(epicReport = prepareEpicReport(issues)) }
+            } else {
+                val message = result.exceptionOrNull()?.message
+                println("Error = $message")
+                changeState { copy(error = message) }
+            }
+        }
+    }
+
+    private fun prepareEpicReport(issues: List<Issue>): EpicReport {
+        return EpicReport(
+            totalIssuesCount = issues.size,
+            closedIssuesCount = issues.filter { it.isClosed }.size,
+            openIssuesCount = issues.filter { it.isClosed.not() }.size,
+        )
+    }
 }

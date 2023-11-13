@@ -22,12 +22,15 @@
  * SOFTWARE.
  */
 
+import com.github.gmazzo.gradle.plugins.BuildConfigExtension
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.internal.utils.getLocalProperty
 
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.buildConfig)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -67,6 +70,7 @@ kotlin {
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.components.resources)
 
+                implementation(libs.kmp.compose.chart)
             }
         }
 
@@ -81,6 +85,7 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
                 implementation(compose.desktop.common)
                 implementation(compose.desktop.currentOs)
+                implementation(libs.kotlinx.coroutines.swing)
             }
         }
 
@@ -108,4 +113,22 @@ compose.desktop {
 
 compose.experimental {
     web.application {}
+}
+
+buildConfig {
+
+    fun Project.getLocalPropertyOrEmpty(key: String): String = getLocalProperty(key) ?: ""
+
+    fun BuildConfigExtension.buildConfigString(key: String, value: String) {
+        buildConfigField("String", key, "\"$value\"")
+    }
+
+    fun BuildConfigExtension.buildConfigInt(key: String, value: Int) {
+        buildConfigField("int", key, "$value")
+    }
+
+    buildConfigString("JIRA_BASE_URL", getLocalPropertyOrEmpty("jira.url"))
+    buildConfigString("JIRA_PERSONAL_ACCESS_TOKEN", getLocalPropertyOrEmpty("jira.token"))
+    buildConfigInt("JIRA_EPIC_ID", getLocalPropertyOrEmpty("jira.epicId").toInt())
+
 }

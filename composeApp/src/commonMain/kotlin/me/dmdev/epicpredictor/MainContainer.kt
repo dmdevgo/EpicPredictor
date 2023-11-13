@@ -24,17 +24,22 @@
 
 package me.dmdev.epicpredictor
 
+import Epic_Predictor.composeApp.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import me.dmdev.epicpredictor.data.jira.JiraRepository
 import me.dmdev.epicpredictor.presentation.MainPm
 import me.dmdev.premo.PmFactory
 import me.dmdev.premo.PmParams
@@ -44,14 +49,21 @@ class MainContainer : PmFactory {
 
     override fun createPm(params: PmParams): PresentationModel {
         return when (val description = params.description) {
-            is MainPm.Description -> MainPm(params)
+            is MainPm.Description -> createMainPm(params)
             else -> throw IllegalArgumentException(
                 "Not handled instance creation for pm description: $description"
             )
         }
     }
 
-    val httpClient: HttpClient by lazy {
+    private fun createMainPm(params: PmParams): MainPm {
+        return MainPm(
+            agileRepository = JiraRepository(httpClient),
+            params = params
+        )
+    }
+
+    private val httpClient: HttpClient by lazy {
         HttpClient {
             install(UserAgent) {
                 agent = "Epic Predictor Desktop Client"
@@ -76,6 +88,11 @@ class MainContainer : PmFactory {
                     }
                 }
                 level = LogLevel.ALL
+            }
+
+            defaultRequest {
+                url(BuildConfig.JIRA_BASE_URL)
+                header(HttpHeaders.Authorization, "Bearer ${BuildConfig.JIRA_PERSONAL_ACCESS_TOKEN}")
             }
         }
     }

@@ -24,10 +24,47 @@
 
 package me.dmdev.epicpredictor.ui
 
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import com.aay.compose.donutChart.DonutChart
+import com.aay.compose.donutChart.model.PieChartData
 import me.dmdev.epicpredictor.presentation.MainPm
 
 @Composable
 internal fun App(pm: MainPm) {
+    val state = pm.stateFlow.collectAsState().value
+    if (state.epicReport != null) {
+        IssuesCountChart(state.epicReport)
+    }
+}
 
+@Composable
+fun IssuesCountChart(report: MainPm.EpicReport) {
+
+    val pieChartData: List<PieChartData> = listOf(
+        PieChartData(
+            partName = "Open",
+            data = report.openIssuesCount.toDouble(),
+            color = Color(0xFF0B666A),
+        ),
+        PieChartData(
+            partName = "Closed",
+            data = report.closedIssuesCount.toDouble(),
+            color = Color(0xFF35A29F),
+        ),
+    )
+
+    DonutChart(
+        modifier = Modifier.wrapContentSize(),
+        pieChartData = pieChartData,
+        centerTitle = "Issues",
+        centerTitleStyle = TextStyle(color = Color(0xFF071952)),
+        outerCircularColor = Color.LightGray,
+        innerCircularColor = Color.Gray,
+        ratioLineColor = Color.LightGray,
+    )
 }
