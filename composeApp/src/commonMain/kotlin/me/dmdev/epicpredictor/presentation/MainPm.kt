@@ -28,7 +28,8 @@ import Epic_Predictor.composeApp.BuildConfig
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.dmdev.epicpredictor.domain.AgileRepository
-import me.dmdev.epicpredictor.domain.Issue
+import me.dmdev.epicpredictor.domain.report.EpicReport
+import me.dmdev.epicpredictor.domain.report.prepareEpicReport
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
 
@@ -45,34 +46,35 @@ class MainPm(
 
     data class State(
         val epicReport: EpicReport? = null,
-        val error: String? = null
+        val error: String? = null,
+        val inProgress: Boolean = false
     )
 
-    data class EpicReport(
-        val totalIssuesCount: Int,
-        val closedIssuesCount: Int,
-        val openIssuesCount: Int,
-    )
+    fun prepareReport() = runWithProgress {
 
-    init {
-        scope.launch {
-            val result = agileRepository.getEpicIssues(BuildConfig.JIRA_EPIC_ID)
-            if (result.isSuccess) {
-                val issues = result.getOrNull() ?: listOf()
-                changeState { copy(epicReport = prepareEpicReport(issues)) }
-            } else {
-                val message = result.exceptionOrNull()?.message
-                println("Error = $message")
-                changeState { copy(error = message) }
-            }
+        val results = BuildConfig.JIRA_EPIC_KEYS
+            .split(",")
+            .map { epicKey -> agileRepository.getEpicIssues(epicKey) }
+
+        val anyFailResult = results.find { it.isFailure }
+
+        if (anyFailResult == null) {
+            val issues = results.mapNotNull { it.getOrNull() }.flatten()
+            val epicReport = issues.prepareEpicReport()
+            changeState { copy(epicReport = epicReport) }
+        } else {
+            val message = anyFailResult.exceptionOrNull()?.message ?: "Unknown error"
+            changeState { copy(error = message) }
         }
     }
 
-    private fun prepareEpicReport(issues: List<Issue>): EpicReport {
-        return EpicReport(
-            totalIssuesCount = issues.size,
-            closedIssuesCount = issues.filter { it.isClosed }.size,
-            openIssuesCount = issues.filter { it.isClosed.not() }.size,
-        )
+    private fun runWithProgress(
+        block: suspend () -> Unit
+    ) {
+        scope.launch {
+            changeState { copy(inProgress = true) }
+            block.invoke()
+            changeState { copy(inProgress = false) }
+        }
     }
 }

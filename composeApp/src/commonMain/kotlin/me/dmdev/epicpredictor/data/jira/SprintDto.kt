@@ -24,7 +24,7 @@
 
 package me.dmdev.epicpredictor.data.jira
 
-import kotlinx.datetime.Instant
+import kotlinx.datetime.toInstant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.dmdev.epicpredictor.domain.Sprint
@@ -59,8 +59,8 @@ fun SprintDto.toSprint() : Sprint {
             "closed" -> Sprint.State.CLOSED
             else -> Sprint.State.FUTURE
         },
-        startDate = if (startDate != null) Instant.parse(startDate) else null,
-        endDate = if (endDate != null) Instant.parse(endDate) else null,
-        completeDate = if (completeDate != null) Instant.parse(completeDate) else null,
+        startDate = startDate?.toInstant(),
+        endDate = endDate?.toInstant(),
+        completeDate = completeDate?.toInstant()
     )
 }

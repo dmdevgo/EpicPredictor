@@ -22,34 +22,14 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.data.jira
+package me.dmdev.epicpredictor.domain.report
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import me.dmdev.epicpredictor.domain.AgileRepository
-import me.dmdev.epicpredictor.domain.Issue
-
-class JiraRepository(
-    private val httpClient: HttpClient
-) : AgileRepository {
-
-    override suspend fun getEpicIssues(epicIdOrKey: String): Result<List<Issue>> {
-        return try {
-            val response = httpClient.get("epic/$epicIdOrKey/issue") {
-                url {
-                    parameters.append("startAt", 0.toString())
-                    parameters.append("maxResults", 1000.toString())
-                    parameters.append(
-                        name = "fields",
-                        value = "sprint,closedSprints,status,created,resolutiondate"
-                    )
-                }
-            }.body<EpicIssuesResponse>()
-
-            Result.success(response.issues.map { it.toIssue() })
-        } catch (e: Throwable) {
-            Result.failure(e)
-        }
-    }
-}
+data class SprintReport(
+    val sprintName: String,
+    val committedIssues: Int,
+    val completedIssues: Int,
+    val createdIssues: Int,
+    val totalIssues: Int,
+    val totalClosedIssues: Int,
+    val isClosed: Boolean
+)

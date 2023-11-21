@@ -24,10 +24,14 @@
 
 package me.dmdev.epicpredictor.domain
 
+import kotlinx.datetime.Instant
+
 data class Issue(
     val id: String,
     val key: String,
     val status: Status,
+    val createdDate: Instant,
+    val resolutionDate: Instant?,
     val sprint: Sprint?,
     val closedSprints: List<Sprint>
 ) {
@@ -38,4 +42,34 @@ data class Issue(
         ANY,
         CLOSED
     }
+}
+
+fun Issue.committedIn(sprint: Sprint): Boolean {
+    return closedSprints.contains(sprint) || this.sprint == sprint
+}
+
+fun Issue.completedIn(sprint: Sprint): Boolean {
+    val lastClosedSprint = closedSprints.maxByOrNull {
+        it.endDate?.toEpochMilliseconds() ?: 0
+    }
+    return isClosed && (lastClosedSprint == sprint || this.sprint == sprint)
+}
+
+fun Issue.createdIn(sprint: Sprint): Boolean {
+    if (sprint.startDate == null || sprint.endDate == null) return false
+
+    return createdDate.toEpochMilliseconds() >= sprint.startDate.toEpochMilliseconds()
+                && createdDate.toEpochMilliseconds() <= sprint.endDate.toEpochMilliseconds()
+}
+
+fun Issue.createdBeforeOrIn(sprint: Sprint): Boolean {
+    if (sprint.endDate == null) return true
+
+    return createdDate.toEpochMilliseconds() <= sprint.endDate.toEpochMilliseconds()
+}
+
+fun Issue.closedBeforeOrIn(sprint: Sprint): Boolean {
+    if (sprint.endDate == null || resolutionDate == null) return false
+
+    return resolutionDate.toEpochMilliseconds() <= sprint.endDate.toEpochMilliseconds()
 }

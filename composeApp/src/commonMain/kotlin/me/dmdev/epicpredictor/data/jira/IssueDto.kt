@@ -24,6 +24,8 @@
 
 package me.dmdev.epicpredictor.data.jira
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toInstant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.dmdev.epicpredictor.domain.Issue
@@ -48,6 +50,12 @@ data class IssueDto(
         @SerialName("status")
         val status: StatusDto,
 
+        @SerialName("created")
+        val createdDate: String,
+
+        @SerialName("resolutiondate")
+        val resolutionDate: String? = null,
+
         @SerialName("closedSprints")
         val closedSprints: List<SprintDto> = listOf()
     )
@@ -68,6 +76,9 @@ fun IssueDto.toIssue(): Issue {
             else -> Issue.Status.ANY
         },
         sprint = fields?.sprint?.toSprint(),
+        createdDate = fields?.createdDate?.take(26)?.toInstant()
+            ?: Instant.fromEpochMilliseconds(0),
+        resolutionDate = fields?.resolutionDate?.take(26)?.toInstant(),
         closedSprints = fields?.closedSprints?.map { it.toSprint() } ?: listOf()
     )
 }

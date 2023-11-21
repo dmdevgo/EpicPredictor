@@ -32,8 +32,8 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import me.dmdev.epicpredictor.MainContainer
-import me.dmdev.epicpredictor.presentation.MainPm
 import me.dmdev.epicpredictor.Serializers
+import me.dmdev.epicpredictor.presentation.MainPm
 import me.dmdev.epicpredictor.ui.App
 import me.dmdev.premo.JvmPmDelegate
 import me.dmdev.premo.saver.JsonFileStateSaver
@@ -48,7 +48,7 @@ fun main() {
 
     application {
 
-        val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
+        val windowState = rememberWindowState(width = 1200.dp, height = 800.dp)
         pmDelegate.attachWindowLifecycle(windowState)
 
         Window(
@@ -56,7 +56,7 @@ fun main() {
             state = windowState,
             onCloseRequest = ::exitApplication,
         ) {
-            window.minimumSize = Dimension(800, 600)
+            window.minimumSize = Dimension(1200, 800)
             App(pmDelegate.presentationModel)
         }
     }

@@ -40,3 +40,11 @@ data class Sprint(
         FUTURE
     }
 }
+
+fun Sprint.isClosedOrActive(): Boolean {
+    return state == Sprint.State.CLOSED || state == Sprint.State.ACTIVE
+}
+
+fun Sprint.isClosed(): Boolean {
+    return state == Sprint.State.CLOSED
+}

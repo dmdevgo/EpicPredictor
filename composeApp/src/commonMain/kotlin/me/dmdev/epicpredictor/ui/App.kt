@@ -24,47 +24,68 @@
 
 package me.dmdev.epicpredictor.ui
 
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import com.aay.compose.donutChart.DonutChart
-import com.aay.compose.donutChart.model.PieChartData
+import androidx.compose.ui.unit.dp
 import me.dmdev.epicpredictor.presentation.MainPm
 
 @Composable
 internal fun App(pm: MainPm) {
     val state = pm.stateFlow.collectAsState().value
-    if (state.epicReport != null) {
-        IssuesCountChart(state.epicReport)
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (state.inProgress) {
+            CircularProgressIndicator(color = Colors.open)
+        } else {
+            if (state.error != null) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = state.error
+                    )
+                    ReportButton("Retry") {
+                        pm.prepareReport()
+                    }
+                }
+            } else if (state.epicReport != null) {
+                EpicReportView(state.epicReport)
+            } else {
+                ReportButton("Report") {
+                    pm.prepareReport()
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun IssuesCountChart(report: MainPm.EpicReport) {
-
-    val pieChartData: List<PieChartData> = listOf(
-        PieChartData(
-            partName = "Open",
-            data = report.openIssuesCount.toDouble(),
-            color = Color(0xFF0B666A),
+fun ReportButton(
+    text: String,
+    onClick: () -> Unit
+) {
+    Button(
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Colors.open
         ),
-        PieChartData(
-            partName = "Closed",
-            data = report.closedIssuesCount.toDouble(),
-            color = Color(0xFF35A29F),
-        ),
-    )
-
-    DonutChart(
-        modifier = Modifier.wrapContentSize(),
-        pieChartData = pieChartData,
-        centerTitle = "Issues",
-        centerTitleStyle = TextStyle(color = Color(0xFF071952)),
-        outerCircularColor = Color.LightGray,
-        innerCircularColor = Color.Gray,
-        ratioLineColor = Color.LightGray,
-    )
+        onClick = onClick
+    ) {
+        Text(text)
+    }
 }

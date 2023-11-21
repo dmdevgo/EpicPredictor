@@ -25,6 +25,5 @@
 package me.dmdev.epicpredictor.domain
 
 interface AgileRepository {
-    suspend fun getEpicIssues(epicId: Int): Result<List<Issue>>
-    suspend fun getEpics(boardId: Int): Result<List<Epic>>
+    suspend fun getEpicIssues(epicIdOrKey: String): Result<List<Issue>>
 }

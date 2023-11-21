@@ -123,12 +123,10 @@ buildConfig {
         buildConfigField("String", key, "\"$value\"")
     }
 
-    fun BuildConfigExtension.buildConfigInt(key: String, value: Int) {
-        buildConfigField("int", key, "$value")
-    }
-
     buildConfigString("JIRA_BASE_URL", getLocalPropertyOrEmpty("jira.url"))
     buildConfigString("JIRA_PERSONAL_ACCESS_TOKEN", getLocalPropertyOrEmpty("jira.token"))
-    buildConfigInt("JIRA_EPIC_ID", getLocalPropertyOrEmpty("jira.epicId").toInt())
-
+    buildConfigString(
+        "JIRA_EPIC_KEYS",
+        "${getLocalPropertyOrEmpty("jira.epicKeys")}"
+    )
 }

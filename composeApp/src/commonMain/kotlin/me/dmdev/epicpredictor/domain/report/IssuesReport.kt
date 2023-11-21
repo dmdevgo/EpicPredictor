@@ -22,8 +22,10 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.domain
+package me.dmdev.epicpredictor.domain.report
 
-data class Epic(
-    val id: Int
+data class IssuesReport(
+    val totalCount: Int,
+    val closedCount: Int,
+    val openCount: Int,
 )
