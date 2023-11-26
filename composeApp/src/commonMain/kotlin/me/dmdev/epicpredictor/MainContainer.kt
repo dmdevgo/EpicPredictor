@@ -104,7 +104,7 @@ class MainContainer : PmFactory {
             }
 
             defaultRequest {
-                url(BuildConfig.JIRA_BASE_URL)
+                url(BuildConfig.JIRA_BASE_URL + "rest/agile/1.0/")
                 header(HttpHeaders.Authorization, "Bearer ${BuildConfig.JIRA_PERSONAL_ACCESS_TOKEN}")
             }
         }
