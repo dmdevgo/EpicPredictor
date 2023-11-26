@@ -24,20 +24,27 @@
 
 package me.dmdev.epicpredictor.presentation
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
+import me.dmdev.epicpredictor.domain.report.BacklogGrowthRateFactor
+import me.dmdev.epicpredictor.domain.report.SprintsCount
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+data class MenuItem<T>(
+    val name: String,
+    val value: T
+)
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+fun BacklogGrowthRateFactor.toMenuItem(): MenuItem<BacklogGrowthRateFactor> {
+    return when(this) {
+        BacklogGrowthRateFactor.Half -> MenuItem("50 percent of velocity", this)
+        BacklogGrowthRateFactor.OneFifth -> MenuItem("20 percent of velocity", this)
+        BacklogGrowthRateFactor.OneThird -> MenuItem("33 percent of velocity", this)
+        BacklogGrowthRateFactor.Zero -> MenuItem("No backlog growth", this)
+    }
+}
+
+fun SprintsCount.toMenuItem(): MenuItem<SprintsCount> {
+    return when (this) {
+        SprintsCount.ALL -> MenuItem("All sprints", this)
+        SprintsCount.LastSix -> MenuItem("Last six sprints", this)
+        SprintsCount.LastThree -> MenuItem("Last three sprints", this)
+    }
 }

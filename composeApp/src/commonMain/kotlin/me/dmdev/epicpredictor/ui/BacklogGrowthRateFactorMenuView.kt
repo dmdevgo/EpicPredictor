@@ -22,22 +22,37 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.presentation
+package me.dmdev.epicpredictor.ui
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import me.dmdev.epicpredictor.domain.report.BacklogGrowthRateFactor
+import me.dmdev.epicpredictor.presentation.BacklogGrowthRateFactorMenuPm
+import me.dmdev.epicpredictor.presentation.MenuItem
+import me.dmdev.premo.navigation.DialogNavigation
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+@Composable
+fun BacklogGrowthRateFactorMenuView(
+    selectedItem: MenuItem<BacklogGrowthRateFactor>,
+    dialogNavigation: DialogNavigation<BacklogGrowthRateFactorMenuPm>,
+    onExpand: () -> Unit,
+) {
+    val dialogPm = dialogNavigation.dialogFlow.collectAsState().value
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+    DropdownMenuView(
+        expanded = dialogPm != null,
+        selectedItem = selectedItem,
+        label = "Backlog Growth Rate Factor",
+        items = dialogPm?.items ?: listOf(),
+        onExpandedChange = { expand ->
+            if (expand) {
+                onExpand()
+            } else {
+                dialogNavigation.onDismissRequest()
+            }
+        },
+        onItemClick = { item ->
+            dialogPm?.onSelectItem(item)
+        }
+    )
 }

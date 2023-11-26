@@ -65,10 +65,31 @@ internal fun App(pm: MainPm) {
                     }
                 }
             } else if (state.epicReport != null) {
-                EpicReportView(state.epicReport)
+                EpicReportView(
+                    epicReport = state.epicReport,
+                    onNewReportClick = pm::onNewReport
+                )
             } else {
-                ReportButton("Report") {
-                    pm.prepareReport()
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    SprintsCountMenuView(
+                        selectedItem = state.sprintsCountItem,
+                        dialogNavigation = pm.sprintsCountMenuDialog,
+                        onExpand = { pm.onSprintsCountClick() }
+                    )
+
+                    BacklogGrowthRateFactorMenuView(
+                        selectedItem = state.backlogGrowthRateFactorItem,
+                        dialogNavigation = pm.backlogGrowthRateFactorMenuDialog,
+                        onExpand = { pm.onBacklogGrowthRateFactorClick() }
+                    )
+
+                    ReportButton("Report") {
+                        pm.prepareReport()
+                    }
                 }
             }
         }

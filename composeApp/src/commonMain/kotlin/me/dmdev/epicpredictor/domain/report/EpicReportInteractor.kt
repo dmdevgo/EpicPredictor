@@ -22,22 +22,35 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.presentation
+package me.dmdev.epicpredictor.domain.report
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
+import me.dmdev.epicpredictor.domain.AgileRepository
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+class EpicReportInteractor(
+    private val agileRepository: AgileRepository
+) {
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+    suspend operator fun invoke(
+        epicKeys: List<String>,
+        sprintsCountForCalculation: SprintsCount,
+        backlogGrowthRateFactor: BacklogGrowthRateFactor
+    ) : Result<EpicReport> {
+
+        val results = epicKeys.map { epicKey -> agileRepository.getEpicIssues(epicKey) }
+
+        val anyError = results.find { it.isFailure }?.exceptionOrNull()
+
+        return if (anyError != null) {
+            Result.failure(anyError)
+        } else {
+            val epicReport = results
+                .mapNotNull { it.getOrNull() }
+                .flatten()
+                .prepareEpicReport(
+                    calculationSprintsCount = sprintsCountForCalculation,
+                    backlogGrowthRateFactor = backlogGrowthRateFactor
+                )
+            Result.success(epicReport)
+        }
+    }
 }

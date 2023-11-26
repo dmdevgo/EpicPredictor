@@ -22,22 +22,13 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.presentation
+package me.dmdev.epicpredictor.domain.report
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
-
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
-
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+sealed class BacklogGrowthRateFactor(
+    val value: Double // percent of velocity
+) {
+    data object OneFifth : BacklogGrowthRateFactor(0.2)
+    data object OneThird : BacklogGrowthRateFactor(0.3)
+    data object Half : BacklogGrowthRateFactor(0.5)
+    data object Zero : BacklogGrowthRateFactor(0.0)
 }

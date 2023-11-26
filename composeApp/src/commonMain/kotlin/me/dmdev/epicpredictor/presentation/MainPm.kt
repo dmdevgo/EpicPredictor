@@ -27,14 +27,16 @@ package me.dmdev.epicpredictor.presentation
 import Epic_Predictor.composeApp.BuildConfig
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import me.dmdev.epicpredictor.domain.AgileRepository
+import me.dmdev.epicpredictor.domain.report.BacklogGrowthRateFactor
 import me.dmdev.epicpredictor.domain.report.EpicReport
-import me.dmdev.epicpredictor.domain.report.prepareEpicReport
+import me.dmdev.epicpredictor.domain.report.EpicReportInteractor
+import me.dmdev.epicpredictor.domain.report.SprintsCount
 import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
+import me.dmdev.premo.navigation.DialogNavigator
 
 class MainPm(
-    val agileRepository: AgileRepository,
+    private val epicReportInteractor: EpicReportInteractor,
     params: PmParams
 ) : SingleStatePm<MainPm.State>(
     initialState = State(),
@@ -47,34 +49,75 @@ class MainPm(
     data class State(
         val epicReport: EpicReport? = null,
         val error: String? = null,
-        val inProgress: Boolean = false
+        val inProgress: Boolean = false,
+        val sprintsCountItem: MenuItem<SprintsCount> =
+            SprintsCount.LastSix.toMenuItem(),
+        val backlogGrowthRateFactorItem: MenuItem<BacklogGrowthRateFactor> =
+            BacklogGrowthRateFactor.OneFifth.toMenuItem(),
     )
 
-    fun prepareReport() = runWithProgress {
+    val sprintsCountMenuDialog =
+        DialogNavigator<SprintsCountMenuPm, AbstractMenuPm<SprintsCount>.ResultMessage>(
+            key = "sprints_count",
+            onDismissRequest = {
+                it.dismiss()
+            }
+        ) { message ->
+            message?.let {
+                state = state.copy(
+                    sprintsCountItem = message.item
+                )
+            }
+        }
 
-        val results = BuildConfig.JIRA_EPIC_KEYS
-            .split(",")
-            .map { epicKey -> agileRepository.getEpicIssues(epicKey) }
+    val backlogGrowthRateFactorMenuDialog =
+        DialogNavigator<BacklogGrowthRateFactorMenuPm, AbstractMenuPm<BacklogGrowthRateFactor>.ResultMessage>(
+            key = "backlog_growth_rate_factor"
+        ) { message ->
+            message?.let {
+                state = state.copy(
+                    backlogGrowthRateFactorItem = message.item
+                )
+            }
+        }
 
-        val anyFailResult = results.find { it.isFailure }
+    fun prepareReport() {
+        scope.launch {
+            if (state.inProgress) return@launch
 
-        if (anyFailResult == null) {
-            val issues = results.mapNotNull { it.getOrNull() }.flatten()
-            val epicReport = issues.prepareEpicReport()
-            changeState { copy(epicReport = epicReport) }
-        } else {
-            val message = anyFailResult.exceptionOrNull()?.message ?: "Unknown error"
-            changeState { copy(error = message) }
+            state = state.copy(inProgress = true)
+
+            val epicKeys = BuildConfig.JIRA_EPIC_KEYS.split(",")
+            val result = epicReportInteractor.invoke(
+                epicKeys = epicKeys,
+                sprintsCountForCalculation = state.sprintsCountItem.value,
+                backlogGrowthRateFactor = state.backlogGrowthRateFactorItem.value,
+            )
+
+            state = state.copy(
+                inProgress = false,
+                epicReport = result.getOrNull(),
+                error = result.exceptionOrNull()?.message,
+            )
         }
     }
 
-    private fun runWithProgress(
-        block: suspend () -> Unit
-    ) {
-        scope.launch {
-            changeState { copy(inProgress = true) }
-            block.invoke()
-            changeState { copy(inProgress = false) }
-        }
+    fun onNewReport() {
+        state = state.copy(
+            epicReport = null,
+            error = null
+        )
+    }
+
+    fun onSprintsCountClick() {
+        sprintsCountMenuDialog.show(
+            Child(SprintsCountMenuPm.Description)
+        )
+    }
+
+    fun onBacklogGrowthRateFactorClick() {
+        backlogGrowthRateFactorMenuDialog.show(
+            Child(BacklogGrowthRateFactorMenuPm.Description)
+        )
     }
 }

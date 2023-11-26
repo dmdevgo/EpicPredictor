@@ -44,7 +44,10 @@ import com.aay.compose.donutChart.model.PieChartData
 import me.dmdev.epicpredictor.domain.report.EpicReport
 
 @Composable
-fun EpicChart(report: EpicReport) {
+fun EpicChart(
+    report: EpicReport,
+    onNewReportClick: () -> Unit
+) {
 
     val pieChartData = remember(report.issuesReport) {
         listOf(
@@ -74,23 +77,32 @@ fun EpicChart(report: EpicReport) {
             innerCircularColor = Color.Gray,
             ratioLineColor = Color.LightGray,
         )
-        Card(
-            modifier = Modifier.padding(16.dp),
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.wrapContentSize().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Card(
+                modifier = Modifier.padding(16.dp),
             ) {
-                Text("Total Issues: ${report.issuesReport.totalCount}")
-                Text("Closed Issues: ${report.issuesReport.closedCount}")
-                Text("Open Issues: ${report.issuesReport.openCount}")
-                Text("Sprints: ${report.sprintReports.size}")
-                Text("Remaining Sprints: ${report.burndownReports.size - report.sprintReports.size}")
-                Text("Velocity: ${report.velocityReport.burndown}")
-                Text("Backlog Velocity: ${report.velocityReport.backlog}")
-                Text("Last Sprints Count For Calculation: ${report.lastSprintsCountForCalculation}")
-                Text("Backlog Growth Rate Factor: ${report.backlogGrowthRateFactor}")
+                Column(
+                    modifier = Modifier.wrapContentSize().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Total Issues: ${report.issuesReport.totalCount}")
+                    Text("Closed Issues: ${report.issuesReport.closedCount}")
+                    Text("Open Issues: ${report.issuesReport.openCount}")
+                    Text("Sprints: ${report.sprintReports.size}")
+                    Text("Remaining Sprints: ${report.burndownReports.size - report.sprintReports.size}")
+                    Text("Velocity: ${report.velocityReport.burndown}")
+                    Text("Backlog Velocity: ${report.velocityReport.backlog}")
+                    Text("Last Sprints Count For Calculation: ${report.lastSprintsCountForCalculation}")
+                    Text("Backlog Growth Rate Factor: ${report.backlogGrowthRateFactor.value}")
+                }
             }
+            ReportButton(
+                text = "New Report",
+                onClick = onNewReportClick
+            )
         }
     }
 }

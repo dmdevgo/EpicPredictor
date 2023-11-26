@@ -22,22 +22,12 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.presentation
+package me.dmdev.epicpredictor.domain.report
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
-
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
-
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+sealed class SprintsCount(
+    val sprintsCount: Int?
+) {
+    data object LastThree : SprintsCount(3)
+    data object LastSix : SprintsCount(6)
+    data object ALL : SprintsCount(null)
 }

@@ -40,17 +40,20 @@ data class EpicReport(
     val velocityReport: VelocityReport,
     val burndownReports: List<SprintReport>,
     val lastSprintsCountForCalculation: Int,
-    val backlogGrowthRateFactor: Double
+    val backlogGrowthRateFactor: BacklogGrowthRateFactor
 )
 
 fun List<Issue>.prepareEpicReport(
-    lastSprintsCountForCalculation: Int = 6,
-    backlogGrowthRateFactor: Double = 0.2 // 20 percent of velocity
+    calculationSprintsCount: SprintsCount,
+    backlogGrowthRateFactor: BacklogGrowthRateFactor
 ): EpicReport {
 
     val issuesReport = prepareIssuesReport()
     val sprintReports = prepareSprintReports()
-    val velocityReport = sprintReports.prepareVelocityReport(lastSprintsCountForCalculation)
+    val lastSprintsCountForCalculation = calculationSprintsCount.sprintsCount ?: sprintReports.size
+    val velocityReport = sprintReports.prepareVelocityReport(
+        lastSprintCount = lastSprintsCountForCalculation
+    )
 
     val burndownReport = issuesReport.prepareBurndownReport(
         velocityReport = velocityReport,
@@ -69,7 +72,7 @@ fun List<Issue>.prepareEpicReport(
 
 private fun IssuesReport.prepareBurndownReport(
     velocityReport: VelocityReport,
-    backlogGrowthRateFactor: Double
+    backlogGrowthRateFactor: BacklogGrowthRateFactor
 ): List<SprintReport> {
 
     if (velocityReport.burndown <= 0.0) return listOf()
@@ -83,7 +86,7 @@ private fun IssuesReport.prepareBurndownReport(
 
     while (closedCount < totalCount) {
         closedCount += velocityReport.burndown
-        totalCount += velocityReport.burndown * backlogGrowthRateFactor
+        totalCount += velocityReport.burndown * backlogGrowthRateFactor.value
 
         if (closedCount > totalCount) {
             closedCount = totalCount
@@ -153,7 +156,7 @@ private fun List<Issue>.prepareSprintReports(): List<SprintReport> {
             val completedIssues = issues.filter { it.completedIn(sprint) }
             val createdIssues = issues.filter { it.createdIn(sprint) }
             val totalIssues = issues.filter { it.createdBeforeOrIn(sprint) }
-            val totalClosedIssues = issues.filter { it.closedBeforeOrIn(sprint)}
+            val totalClosedIssues = issues.filter { it.closedBeforeOrIn(sprint) }
 
             SprintReport(
                 sprintName = sprint.name,

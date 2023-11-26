@@ -39,11 +39,16 @@ import androidx.compose.ui.Modifier
 import me.dmdev.epicpredictor.domain.report.EpicReport
 
 @Composable
-fun EpicReportView(epicReport: EpicReport) {
+fun EpicReportView(
+    epicReport: EpicReport,
+    onNewReportClick: () -> Unit
+) {
 
     var tabIndex by remember { mutableStateOf(0) }
 
-    val tabs = listOf("Epic Report", "Burndown Chart", "Velocity Chart")
+    val tabs = remember {
+        listOf("Epic Report", "Burndown Chart", "Velocity Chart")
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         TabRow(
@@ -58,7 +63,7 @@ fun EpicReportView(epicReport: EpicReport) {
             }
         }
         when (tabIndex) {
-            0 -> EpicChart(epicReport)
+            0 -> EpicChart(epicReport, onNewReportClick)
             1 -> BurndownChart(epicReport)
             2 -> VelocityChart(epicReport)
         }

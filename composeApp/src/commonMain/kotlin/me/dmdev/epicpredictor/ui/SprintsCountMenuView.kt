@@ -22,22 +22,37 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.presentation
+package me.dmdev.epicpredictor.ui
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import me.dmdev.epicpredictor.domain.report.SprintsCount
+import me.dmdev.epicpredictor.presentation.MenuItem
+import me.dmdev.epicpredictor.presentation.SprintsCountMenuPm
+import me.dmdev.premo.navigation.DialogNavigation
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+@Composable
+fun SprintsCountMenuView(
+    selectedItem: MenuItem<SprintsCount>,
+    dialogNavigation: DialogNavigation<SprintsCountMenuPm>,
+    onExpand: () -> Unit,
+) {
+    val dialogPm = dialogNavigation.dialogFlow.collectAsState().value
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+    DropdownMenuView(
+        expanded = dialogPm != null,
+        selectedItem = selectedItem,
+        label = "Sprints Count For Calculation",
+        items = dialogPm?.items ?: listOf(),
+        onExpandedChange = { expand ->
+            if (expand) {
+                onExpand()
+            } else {
+                dialogNavigation.onDismissRequest()
+            }
+        },
+        onItemClick = { item ->
+            dialogPm?.onSelectItem(item)
+        }
+    )
 }

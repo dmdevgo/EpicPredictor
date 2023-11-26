@@ -40,7 +40,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import me.dmdev.epicpredictor.data.jira.JiraRepository
+import me.dmdev.epicpredictor.domain.report.EpicReportInteractor
+import me.dmdev.epicpredictor.presentation.BacklogGrowthRateFactorMenuPm
 import me.dmdev.epicpredictor.presentation.MainPm
+import me.dmdev.epicpredictor.presentation.SprintsCountMenuPm
 import me.dmdev.premo.PmFactory
 import me.dmdev.premo.PmParams
 import me.dmdev.premo.PresentationModel
@@ -50,6 +53,8 @@ class MainContainer : PmFactory {
     override fun createPm(params: PmParams): PresentationModel {
         return when (val description = params.description) {
             is MainPm.Description -> createMainPm(params)
+            is SprintsCountMenuPm.Description -> createSprintsCountMenuPm(params)
+            is BacklogGrowthRateFactorMenuPm.Description -> createBacklogGrowthRateFactorMenuPm(params)
             else -> throw IllegalArgumentException(
                 "Not handled instance creation for pm description: $description"
             )
@@ -58,9 +63,17 @@ class MainContainer : PmFactory {
 
     private fun createMainPm(params: PmParams): MainPm {
         return MainPm(
-            agileRepository = JiraRepository(httpClient),
+            epicReportInteractor = EpicReportInteractor(JiraRepository(httpClient)),
             params = params
         )
+    }
+
+    private fun createSprintsCountMenuPm(params: PmParams): SprintsCountMenuPm {
+        return SprintsCountMenuPm(params = params)
+    }
+
+    private fun createBacklogGrowthRateFactorMenuPm(params: PmParams): BacklogGrowthRateFactorMenuPm {
+        return BacklogGrowthRateFactorMenuPm(params = params)
     }
 
     private val httpClient: HttpClient by lazy {

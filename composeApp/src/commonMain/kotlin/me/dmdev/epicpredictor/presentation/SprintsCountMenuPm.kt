@@ -24,20 +24,21 @@
 
 package me.dmdev.epicpredictor.presentation
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Serializable
+import me.dmdev.epicpredictor.domain.report.SprintsCount
+import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+class SprintsCountMenuPm(
+    params: PmParams
+) : AbstractMenuPm<SprintsCount>(params = params) {
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+    @Serializable
+    object Description : PmDescription
+
+    override val items: List<MenuItem<SprintsCount>> = listOf(
+        SprintsCount.LastSix.toMenuItem(),
+        SprintsCount.LastThree.toMenuItem(),
+        SprintsCount.ALL.toMenuItem()
+    )
 }

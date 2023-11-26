@@ -24,20 +24,22 @@
 
 package me.dmdev.epicpredictor.presentation
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Serializable
+import me.dmdev.epicpredictor.domain.report.BacklogGrowthRateFactor
+import me.dmdev.premo.PmDescription
 import me.dmdev.premo.PmParams
-import me.dmdev.premo.PresentationModel
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+class BacklogGrowthRateFactorMenuPm(
+    params: PmParams
+) : AbstractMenuPm<BacklogGrowthRateFactor>(params = params) {
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+    @Serializable
+    object Description : PmDescription
+
+    override val items: List<MenuItem<BacklogGrowthRateFactor>> = listOf(
+        BacklogGrowthRateFactor.OneFifth.toMenuItem(),
+        BacklogGrowthRateFactor.OneThird.toMenuItem(),
+        BacklogGrowthRateFactor.Half.toMenuItem(),
+        BacklogGrowthRateFactor.Zero.toMenuItem(),
+    )
 }

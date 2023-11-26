@@ -24,20 +24,17 @@
 
 package me.dmdev.epicpredictor.presentation
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import me.dmdev.premo.PmMessage
 import me.dmdev.premo.PmParams
 import me.dmdev.premo.PresentationModel
 
-abstract class SingleStatePm<S>(
-    initialState: S,
-    pmParams: PmParams
-) : PresentationModel(pmParams) {
+abstract class AbstractMenuPm<T>(params: PmParams) : PresentationModel(params = params) {
 
-    private val _stateFlow = MutableStateFlow(initialState)
-    val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
-    var state: S
-        get() { return _stateFlow.value }
-        protected set(value) { _stateFlow.value = value }
+    abstract val items: List<MenuItem<T>>
+
+    inner class ResultMessage(val item: MenuItem<T>) : PmMessage
+
+    fun onSelectItem(item: MenuItem<T>) {
+        messageHandler.send(ResultMessage(item))
+    }
 }
