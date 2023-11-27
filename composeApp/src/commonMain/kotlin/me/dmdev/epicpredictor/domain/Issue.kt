@@ -52,7 +52,12 @@ fun Issue.completedIn(sprint: Sprint): Boolean {
     val lastClosedSprint = closedSprints.maxByOrNull {
         it.endDate?.toEpochMilliseconds() ?: 0
     }
-    return isClosed && (lastClosedSprint == sprint || this.sprint == sprint)
+    val isClosedInLastClosedSprint = isClosed
+            && lastClosedSprint == sprint
+            && this.sprint == null
+
+    val isClosedInActiveSprint = isClosed && this.sprint == sprint
+    return isClosedInLastClosedSprint || isClosedInActiveSprint
 }
 
 fun Issue.createdIn(sprint: Sprint): Boolean {
