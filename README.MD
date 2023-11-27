@@ -10,6 +10,8 @@ Calculate the average velocity for the last few sprints and and assuming how qui
 
 The weak point of the calculation is the choice of the backlog growth rate factor.
 
+This tool is a predictor, but you can be a corrector. Think about how you can increase a velocity or reduce backlog to improve the forecast.
+
 ## Usage
 
 ### Configuration
