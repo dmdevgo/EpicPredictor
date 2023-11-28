@@ -40,6 +40,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import me.dmdev.epicpredictor.data.jira.JiraRepository
+import me.dmdev.epicpredictor.domain.AgileRepository
+import me.dmdev.epicpredictor.domain.GetEpicsInteractor
 import me.dmdev.epicpredictor.domain.report.EpicReportInteractor
 import me.dmdev.epicpredictor.presentation.BacklogGrowthRateFactorMenuPm
 import me.dmdev.epicpredictor.presentation.MainPm
@@ -63,7 +65,8 @@ class MainContainer : PmFactory {
 
     private fun createMainPm(params: PmParams): MainPm {
         return MainPm(
-            epicReportInteractor = EpicReportInteractor(JiraRepository(httpClient)),
+            getEpicsInteractor = GetEpicsInteractor(agileRepository),
+            epicReportInteractor = EpicReportInteractor(agileRepository),
             params = params
         )
     }
@@ -74,6 +77,10 @@ class MainContainer : PmFactory {
 
     private fun createBacklogGrowthRateFactorMenuPm(params: PmParams): BacklogGrowthRateFactorMenuPm {
         return BacklogGrowthRateFactorMenuPm(params = params)
+    }
+
+    private val agileRepository: AgileRepository by lazy {
+        JiraRepository(httpClient)
     }
 
     private val httpClient: HttpClient by lazy {

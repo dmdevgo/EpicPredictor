@@ -22,9 +22,26 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.domain
+package me.dmdev.epicpredictor.ui
 
-interface AgileRepository {
-    suspend fun getEpicIssues(epicIdOrKey: String): Result<List<Issue>>
-    suspend fun getEpic(epicIdOrKey: String): Result<Epic>
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+
+@Composable
+fun ReportButton(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Colors.open
+        ),
+        onClick = onClick
+    ) {
+        Text(text)
+    }
 }

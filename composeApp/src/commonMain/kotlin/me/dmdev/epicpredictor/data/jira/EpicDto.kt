@@ -22,9 +22,25 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.domain
+package me.dmdev.epicpredictor.data.jira
 
-interface AgileRepository {
-    suspend fun getEpicIssues(epicIdOrKey: String): Result<List<Issue>>
-    suspend fun getEpic(epicIdOrKey: String): Result<Epic>
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import me.dmdev.epicpredictor.domain.Epic
+
+@Serializable
+data class EpicDto(
+
+    @SerialName("id")
+    val id: Int,
+
+    @SerialName("name")
+    val name: String
+)
+
+fun EpicDto.toEpic(): Epic {
+    return Epic(
+        id = id,
+        name = name
+    )
 }

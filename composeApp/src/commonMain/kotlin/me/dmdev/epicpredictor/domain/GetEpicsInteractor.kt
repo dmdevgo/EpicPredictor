@@ -24,7 +24,23 @@
 
 package me.dmdev.epicpredictor.domain
 
-interface AgileRepository {
-    suspend fun getEpicIssues(epicIdOrKey: String): Result<List<Issue>>
-    suspend fun getEpic(epicIdOrKey: String): Result<Epic>
+class GetEpicsInteractor(
+    private val agileRepository: AgileRepository
+) {
+
+    suspend operator fun invoke(
+        epicKeys: List<String>,
+    ): Result<List<Epic>> {
+
+        val results = epicKeys.map { agileRepository.getEpic(it) }
+
+        results
+            .find { it.isFailure }
+            ?.exceptionOrNull()
+            ?.let { return Result.failure(it) }
+
+        val epics = results.mapNotNull { it.getOrNull() }
+
+        return Result.success(epics)
+    }
 }

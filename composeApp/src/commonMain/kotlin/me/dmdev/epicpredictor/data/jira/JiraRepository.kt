@@ -28,6 +28,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import me.dmdev.epicpredictor.domain.AgileRepository
+import me.dmdev.epicpredictor.domain.Epic
 import me.dmdev.epicpredictor.domain.Issue
 
 class JiraRepository(
@@ -48,6 +49,15 @@ class JiraRepository(
             }.body<EpicIssuesResponse>()
 
             Result.success(response.issues.map { it.toIssue() })
+        } catch (e: Throwable) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getEpic(epicIdOrKey: String): Result<Epic> {
+        return try {
+            val epic = httpClient.get("epic/$epicIdOrKey").body<EpicDto>().toEpic()
+            Result.success(epic)
         } catch (e: Throwable) {
             Result.failure(e)
         }

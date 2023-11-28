@@ -22,9 +22,11 @@
  * SOFTWARE.
  */
 
-package me.dmdev.epicpredictor.domain
+package me.dmdev.epicpredictor.presentation
 
-interface AgileRepository {
-    suspend fun getEpicIssues(epicIdOrKey: String): Result<List<Issue>>
-    suspend fun getEpic(epicIdOrKey: String): Result<Epic>
-}
+import me.dmdev.epicpredictor.domain.Epic
+
+data class EpicItem(
+    val epic: Epic,
+    val checked: Boolean,
+)

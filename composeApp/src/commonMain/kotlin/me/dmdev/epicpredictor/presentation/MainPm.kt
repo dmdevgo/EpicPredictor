@@ -27,6 +27,7 @@ package me.dmdev.epicpredictor.presentation
 import Epic_Predictor.composeApp.BuildConfig
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import me.dmdev.epicpredictor.domain.GetEpicsInteractor
 import me.dmdev.epicpredictor.domain.report.BacklogGrowthRateFactor
 import me.dmdev.epicpredictor.domain.report.EpicReport
 import me.dmdev.epicpredictor.domain.report.EpicReportInteractor
@@ -36,6 +37,7 @@ import me.dmdev.premo.PmParams
 import me.dmdev.premo.navigation.DialogNavigator
 
 class MainPm(
+    private val getEpicsInteractor: GetEpicsInteractor,
     private val epicReportInteractor: EpicReportInteractor,
     params: PmParams
 ) : SingleStatePm<MainPm.State>(
@@ -49,12 +51,17 @@ class MainPm(
     data class State(
         val epicReport: EpicReport? = null,
         val error: String? = null,
-        val inProgress: Boolean = false,
+        val loadEpicsInProgress: Boolean = false,
+        val calculateReportInProgress: Boolean = false,
+        val epicItems: List<EpicItem> = listOf(),
         val sprintsCountItem: MenuItem<SprintsCount> =
             SprintsCount.LastSix.toMenuItem(),
         val backlogGrowthRateFactorItem: MenuItem<BacklogGrowthRateFactor> =
             BacklogGrowthRateFactor.OneFifth.toMenuItem(),
-    )
+    ) {
+        val inProgress = loadEpicsInProgress || calculateReportInProgress
+        val reportButtonEnabled: Boolean = epicItems.any { it.checked }
+    }
 
     val sprintsCountMenuDialog =
         DialogNavigator<SprintsCountMenuPm, AbstractMenuPm<SprintsCount>.ResultMessage>(
@@ -81,13 +88,20 @@ class MainPm(
             }
         }
 
-    fun prepareReport() {
+    init {
+        loadEpics()
+    }
+
+    fun onReportClick() {
         scope.launch {
-            if (state.inProgress) return@launch
+            if (state.calculateReportInProgress) return@launch
 
-            state = state.copy(inProgress = true)
+            state = state.copy(calculateReportInProgress = true)
 
-            val epicKeys = BuildConfig.JIRA_EPIC_KEYS.split(",")
+            val epicKeys = state.epicItems
+                .filter { it.checked }
+                .map { it.epic.id.toString() }
+
             val result = epicReportInteractor.invoke(
                 epicKeys = epicKeys,
                 sprintsCountForCalculation = state.sprintsCountItem.value,
@@ -95,10 +109,18 @@ class MainPm(
             )
 
             state = state.copy(
-                inProgress = false,
+                calculateReportInProgress = false,
                 epicReport = result.getOrNull(),
                 error = result.exceptionOrNull()?.message,
             )
+        }
+    }
+
+    fun onRetryClick() {
+        if (state.epicItems.isEmpty()) {
+            loadEpics()
+        } else {
+            onReportClick()
         }
     }
 
@@ -119,5 +141,40 @@ class MainPm(
         backlogGrowthRateFactorMenuDialog.show(
             Child(BacklogGrowthRateFactorMenuPm.Description)
         )
+    }
+
+    fun onEpicItemClick(epicItem: EpicItem) {
+        val newEpicItems = state.epicItems.map { item ->
+            if (epicItem == item) {
+                item.copy(checked = item.checked.not())
+            } else {
+                item
+            }
+        }
+        state = state.copy(
+            epicItems = newEpicItems
+        )
+    }
+
+    private fun loadEpics() {
+        scope.launch {
+            state = state.copy(loadEpicsInProgress = true)
+            val result = getEpicsInteractor.invoke(getEpicKeys())
+            val epicItems = result.getOrNull()?.map { epic ->
+                EpicItem(
+                    epic = epic,
+                    checked = true
+                )
+            } ?: listOf()
+            state = state.copy(
+                loadEpicsInProgress = false,
+                epicItems = epicItems,
+                error = result.exceptionOrNull()?.message,
+            )
+        }
+    }
+
+    private fun getEpicKeys(): List<String> {
+        return BuildConfig.JIRA_EPIC_KEYS.split(",")
     }
 }

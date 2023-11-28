@@ -101,7 +101,8 @@ fun EpicChart(
             }
             ReportButton(
                 text = "New Report",
-                onClick = onNewReportClick
+                enabled = true,
+                onClick = onNewReportClick,
             )
         }
     }

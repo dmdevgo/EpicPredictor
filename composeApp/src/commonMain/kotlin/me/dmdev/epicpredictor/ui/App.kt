@@ -27,11 +27,12 @@ package me.dmdev.epicpredictor.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,8 +61,11 @@ internal fun App(pm: MainPm) {
                         modifier = Modifier.padding(16.dp),
                         text = state.error
                     )
-                    ReportButton("Retry") {
-                        pm.prepareReport()
+                    ReportButton(
+                        text = "Retry",
+                        enabled = true
+                    ) {
+                        pm.onRetryClick()
                     }
                 }
             } else if (state.epicReport != null) {
@@ -75,6 +79,24 @@ internal fun App(pm: MainPm) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
+                    Text(
+                        text = "Epics For Calculations:",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Column {
+                        state.epicItems.forEach { epicItem ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = epicItem.checked,
+                                    onCheckedChange = { pm.onEpicItemClick(epicItem) }
+                                )
+                                Text(epicItem.epic.name)
+                            }
+                        }
+                    }
+
                     SprintsCountMenuView(
                         selectedItem = state.sprintsCountItem,
                         dialogNavigation = pm.sprintsCountMenuDialog,
@@ -87,26 +109,14 @@ internal fun App(pm: MainPm) {
                         onExpand = { pm.onBacklogGrowthRateFactorClick() }
                     )
 
-                    ReportButton("Report") {
-                        pm.prepareReport()
+                    ReportButton(
+                        text = "Report",
+                        enabled = state.reportButtonEnabled
+                    ) {
+                        pm.onReportClick()
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ReportButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    Button(
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Colors.open
-        ),
-        onClick = onClick
-    ) {
-        Text(text)
     }
 }
